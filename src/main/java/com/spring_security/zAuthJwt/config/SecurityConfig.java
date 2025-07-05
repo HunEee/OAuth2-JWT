@@ -7,6 +7,8 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
 
+import com.spring_security.zAuthJwt.jwt.JWTUtil;
+import com.spring_security.zAuthJwt.oauth2.CustomSuccessHandler;
 import com.spring_security.zAuthJwt.service.CustomOAuth2UserService;
 
 @Configuration
@@ -14,9 +16,15 @@ import com.spring_security.zAuthJwt.service.CustomOAuth2UserService;
 public class SecurityConfig {
 	
     private final CustomOAuth2UserService customOAuth2UserService;
+    
+    //JWT 발급 의존성 + SuccessHandler
+    private final CustomSuccessHandler customSuccessHandler;
+    private final JWTUtil jwtUtil;
 
-    public SecurityConfig(CustomOAuth2UserService customOAuth2UserService) {
+    public SecurityConfig(CustomOAuth2UserService customOAuth2UserService, CustomSuccessHandler customSuccessHandler, JWTUtil jwtUtil) {
         this.customOAuth2UserService = customOAuth2UserService;
+        this.customSuccessHandler = customSuccessHandler;
+        this.jwtUtil = jwtUtil;
     }
 	
 
@@ -33,10 +41,11 @@ public class SecurityConfig {
         http.httpBasic((auth) -> auth.disable());
 
         //oauth2
-        http.oauth2Login((oauth2) -> oauth2.userInfoEndpoint(
-        			(userInfoEndpointConfig) -> userInfoEndpointConfig.userService(customOAuth2UserService)
-        		)
-		);
+		http.oauth2Login(
+			(oauth2) -> oauth2.userInfoEndpoint(
+						(userInfoEndpointConfig) -> userInfoEndpointConfig.userService(customOAuth2UserService)
+				    ).successHandler(customSuccessHandler)
+        );
 
         //경로별 인가 작업
         http.authorizeHttpRequests((auth) -> auth.requestMatchers("/").permitAll().anyRequest().authenticated());
