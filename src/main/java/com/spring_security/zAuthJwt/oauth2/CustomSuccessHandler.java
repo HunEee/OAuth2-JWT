@@ -52,6 +52,8 @@ public class CustomSuccessHandler extends SimpleUrlAuthenticationSuccessHandler{
         //cookie.setSecure(true);
         cookie.setPath("/");
         cookie.setHttpOnly(true);
+        
+        System.out.println("createCookie : " + cookie );
 
         return cookie;
     }
